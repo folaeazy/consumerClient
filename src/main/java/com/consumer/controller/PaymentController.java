@@ -27,5 +27,13 @@ import java.util.UUID;
 
 @RestController
 public class PaymentController {
+    private  final PaymentsProxy paymentsProxy;
 
+    public PaymentController(PaymentsProxy paymentsProxy) {
+        this.paymentsProxy = paymentsProxy;
+    }
+    @PostMapping("/payment")
+    public Payment createPayment( @RequestBody Payment payment) {
+        return paymentsProxy.createPayment(payment);
+    }
 }
