@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
 import java.util.UUID;
 
 
@@ -35,28 +38,53 @@ import java.util.UUID;
 
 //---------------------------REST TEMPLATE TYPE-------------------//
 
+//@Component
+//public class PaymentsProxy {
+//
+//    private final RestTemplate restTemplate;
+//
+//    @Value("${name.service.url}")
+//    private String paymentServiceUrl;
+//
+//
+//    public PaymentsProxy(RestTemplate restTemplate) {
+//        this.restTemplate = restTemplate;
+//    }
+//
+//    public Payment createPayment(Payment payment) {
+//        String url = paymentServiceUrl + "/payment";
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.add("requestId", UUID.randomUUID().toString());
+//
+//        // creating HTTP entity of the request body
+//        HttpEntity<Payment> httpEntity = new HttpEntity<>(payment, headers);
+//        ResponseEntity<Payment> response = restTemplate.exchange(url, HttpMethod.POST, httpEntity, Payment.class);
+//        return response.getBody();
+//    }
+//}
+//--------------------------END---------------------------//
+
+//------------------------WEB CLIENT METHOD-----------------------//
 @Component
 public class PaymentsProxy {
-
-    private final RestTemplate restTemplate;
+    private final WebClient webClient;
 
     @Value("${name.service.url}")
-    private String paymentServiceUrl;
+    private  String url;
 
-
-    public PaymentsProxy(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public PaymentsProxy(WebClient webClient) {
+        this.webClient = webClient;
     }
 
-    public Payment createPayment(Payment payment) {
-        String url = paymentServiceUrl + "/payment";
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("requestId", UUID.randomUUID().toString());
+    public Mono<Payment> createPayment(String requestId, Payment payment) {
+        return webClient.post()
+                .uri(url+ "/payment")
+                .header("requestId", requestId)
+                .body(Mono.just(payment), Payment.class)
+                .retrieve()
+                .bodyToMono(Payment.class);
 
-        // creating HTTP entity of the request body
-        HttpEntity<Payment> httpEntity = new HttpEntity<>(payment, headers);
-        ResponseEntity<Payment> response = restTemplate.exchange(url, HttpMethod.POST, httpEntity, Payment.class);
-        return response.getBody();
     }
 }
-//--------------------------END---------------------------//
+
+//-------------------------END------------------------------------//
